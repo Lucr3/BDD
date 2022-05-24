@@ -1,0 +1,109 @@
+set search_path to "unicorsi";  
+
+--OUTER JOIN
+--1
+SELECT  Corsi.id, Denominazione, Cognome, Nome
+FROM Corsi
+	LEFT OUTER JOIN  Professori 
+				ON Corsi.Professore = Professori.id
+ORDER BY Denominazione;
+
+--2
+SELECT Studenti.Cognome,Studenti.Nome, (Professori.Cognome, Professori.nome) as Relatore
+FROM Studenti
+	LEFT OUTER JOIN  Professori 
+				ON Studenti.Relatore = Professori.id
+				JOIN CorsiDiLaurea
+				ON Studenti.CorsoDiLaurea = CorsiDiLaurea.id
+WHERE CorsiDiLaurea.Denominazione = 'Matematica'
+ORDER BY Studenti.Cognome,Studenti.Nome;
+
+-- FUNZIONI DI GRUPPO
+--1
+SELECT MIN(voto), AVG(voto), MAX(voto)
+FROM Esami
+			JOIN Corsi
+				ON Esami.Corso = Corsi.id
+			JOIN CorsiDiLaurea
+				ON Corsi.CorsoDiLaurea = CorsiDiLaurea.id
+WHERE CorsiDiLaurea.Denominazione = 'Informatica';
+
+--2
+SELECT Cognome,Nome,  COUNT(*)
+FROM Corsi
+			JOIN Professori
+				ON Professore = Professori.id
+WHERE Attivato = 'true'
+GROUP BY Cognome, Nome
+HAVING COUNT(*) > 2
+ORDER BY Cognome,Nome;
+
+-- 3
+SELECT Prof.Cognome, Prof.Nome , COUNT(*)
+FROM Studenti
+			 JOIN Professori AS Prof
+					ON Relatore = Prof.id
+GROUP BY Prof.Cognome, Prof.Nome
+ORDER BY Prof.Cognome, Prof.Nome
+
+-- 3*
+SELECT Prof.Cognome, Prof.Nome , COUNT(Relatore)
+FROM Studenti
+			LEFT OUTER JOIN Professori AS Prof
+					ON Relatore = Prof.id
+GROUP BY Prof.Cognome, Prof.Nome
+ORDER BY Prof.Cognome, Prof.Nome
+
+--4 
+SELECT Matricola, EXTRACT (MONTH FROM Data) mese, EXTRACT (YEAR FROM Data) anno, AVG(Voto)
+FROM Studenti
+		JOIN CorsiDiLaurea AS L 
+			ON Studenti.CorsoDiLaurea = L.id
+		JOIN Esami 
+			ON Studente = Matricola
+WHERE L.Denominazione = 'Informatica'
+GROUP BY Matricola, EXTRACT (MONTH FROM Data), EXTRACT (YEAR FROM Data)
+HAVING COUNT(DISTINCT Corso) > 1;
+
+-- SOTTOINTERROGAZIONI SEMPLICI
+
+--1
+SELECT denominazione
+FROM CorsiDiLaurea
+		JOIN Studenti 
+			ON CorsiDiLaurea.id = corsoDiLaurea
+WHERE iscrizione = '2010'
+GROUP BY CorsiDiLaurea.id
+HAVING COUNT(matricola) < ( SELECT COUNT(*)
+							FROM CorsiDiLaurea
+									JOIN Studenti 
+						   				ON CorsiDiLaurea.id = corsoDiLaurea
+							WHERE CorsiDiLaurea.denominazione = 'Informatica'
+							AND iscrizione = '2010');
+
+--2 SELECT Matricola
+FROM Studenti 
+			JOIN CorsiDiLaurea as L
+				ON Studenti.CorsoDiLaurea = L.id
+			JOIN Esami
+				ON Studenti.Matricola = Esami.Studente
+WHERE L.Denominazione = 'Informatica' and voto = (SELECT MAX(voto)
+												 FROM ESAMI)
+--3
+SELECT matricola
+FROM Studenti
+		JOIN Esami
+			ON studente = matricola
+		JOIN Corsi 
+			ON Corso = Corsi.id
+WHERE Corsi.denominazione = 'Basi Di Dati 1'
+AND Esami.data BETWEEN '06/01/2010' AND '06/30/2010'
+AND matricola IN ( SELECT matricola
+					FROM Studenti
+						JOIN Esami
+				  			ON studente = matricola
+						JOIN Corsi
+				  			ON Corso = Corsi.id
+					WHERE Corsi.denominazione = 'Interfacce Grafiche'
+					AND Esami.data BETWEEN '06/01/2010' AND '06/30/2010');
+

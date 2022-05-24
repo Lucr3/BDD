@@ -1,0 +1,40 @@
+-- BASE DI DATI A LIVELLO FISICO
+
+--1. SHOW data_directory
+-- "/Library/PostgreSQL/14/data"
+
+--2. SELECT datname,oid
+--FROM pg_database;
+-- "16394"
+
+-- SELECT N.oid, N.nspname, C.relname, C.relfilenode, C.relpages, C.reltuples
+-- FROM pg_namespace N JOIN pg_class C ON N.oid = C.relnamespace
+-- WHERE  N.nspname = 'unicorsi' AND relname IN ('corsi','corsidilaurea', 'professori','studenti','esami','pianidistudio');
+-- unicorsi : "16497"
+-- "pianidistudio":"16563"
+-- "corsidilaurea":"16505"
+-- "corsi":"16512"
+-- "professori":"16498"
+-- "studenti":"16530"
+-- "esami":"16547"
+
+--4. Il file secondo noi contiene le informazioni relative alla tabella professori.
+
+--CREAZIONE INDICI
+
+--1
+-- SELECT C.oid, relname, relfilenode, relam, relpages, relhasindex, relkind
+-- FROM pg_namespace N JOIN pg_class C ON N.oid = C.relnamespace
+--  WHERE N.nspname = 'unicorsi' 
+-- RISPOSTA: Si, è presente un indice primario su "oid" in quanto chiave primaria tuttavia non è ordinato ed un indice hash su "relpages"
+
+--2
+-- SELECT C.oid, relname, relam, relpages, relkind, indexrelid, indrelid, indnatts, indisunique, indisprimary, indisclustered, indkey
+-- FROM (pg_namespace N JOIN pg_class C ON N.oid = C.relnamespace) JOIN pg_index ON C.oid = indexrelid
+-- WHERE N.nspname = 'unicorsi'  ;
+-- RISPOSTA: Vi è chiaramente un indice primario ordinato su "oid" e due indici hash
+
+--3 esecuzione comandi
+
+--4 
+
